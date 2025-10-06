@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="12dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <CheckBox
+            android:id="@+id/checkBought"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"/>
+
+        <ImageView
+            android:id="@+id/imgCategory"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_toEndOf="@id/checkBought"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            app:srcCompat="@drawable/ic_category_outros" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/imgCategory"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txtItemName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nome do item"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtQuantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1 un"
+                android:textAppearance="?attr/textAppearanceBody2" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true">
+
+            <ImageButton
+                android:id="@+id/btnEditItem"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Editar item"
+                app:srcCompat="@android:drawable/ic_menu_edit" />
+
+            <ImageButton
+                android:id="@+id/btnDeleteItem"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Excluir item"
+                app:srcCompat="@android:drawable/ic_delete" />
+        </LinearLayout>
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

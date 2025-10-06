@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="8dp">
+
+    <!-- layout interno do card -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- checkbox pra marcar se o item ja foi comprado -->
+        <CheckBox
+            android:id="@+id/checkBought"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="comprado" />
+
+        <!-- nome do item -->
+        <TextView
+            android:id="@+id/txtName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/checkBought"
+            android:layout_marginStart="12dp"
+            android:text="arroz"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- quantidade e unidade ex: 2 kg -->
+        <TextView
+            android:id="@+id/txtQuantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtName"
+            android:layout_toEndOf="@id/checkBought"
+            android:layout_marginStart="12dp"
+            android:text="2 kg" />
+
+        <!-- categoria do produto ex: bebidas, higiene -->
+        <TextView
+            android:id="@+id/txtCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="categoria"
+            android:textStyle="italic" />
+
+        <!-- botao de excluir o item -->
+        <ImageButton
+            android:id="@+id/btnDeleteItem"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/txtCategory"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_delete"
+            android:contentDescription="excluir item" />
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

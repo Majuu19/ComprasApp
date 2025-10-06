@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cor Primária (usada em botões, FABs, etc.) -->
+    <color name="primary">#4CAF50</color>
+    <color name="primary_dark">#388E3C</color>
+    <color name="primary_light">#C8E6C9</color>
+
+    <!-- Cor Secundária (usada para destacar elementos) -->
+    <color name="secondary">#009688</color>
+    <color name="secondary_dark">#00796B</color>
+    <color name="secondary_light">#B2DFDB</color>
+
+    <!-- Cores de Texto -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+
+    <!-- Cores de Fundo -->
+    <color name="background">#F5F5F5</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Cores Padrão -->
+
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+</resources>
