@@ -1,81 +1,102 @@
 package com.example.bruno.ui.shoppinglist
+
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModel
-import com.example.bruno.data.FakeDatabase
+import androidx.lifecycle.viewModelScope
+import com.example.bruno.data.repository.ShoppingRepository
+import com.example.bruno.model.Category
 import com.example.bruno.model.Item
-import com.example.bruno.model.ShoppingList
+import com.example.bruno.model.ListItem
+import kotlinx.coroutines.launch
 
-class ShoppingListViewModel : ViewModel() {
-    private val _filteredItems = MutableLiveData<List<Item>>()
-    private val _list = MutableLiveData<ShoppingList?>()
-    val list: LiveData<ShoppingList?> = _list
+class ShoppingListViewModel(private val repository: ShoppingRepository) : ViewModel() {
 
-    private val _items = MutableLiveData<List<Item>>()
-    private val _searchQuery = MutableLiveData("")
+    private val _listId = MutableLiveData<String>()
+    val listId: String get() = _listId.value ?: ""
 
-    val filteredItems: LiveData<List<Item>> = MediatorLiveData<List<Item>>().apply {
-        fun update() {
-            val items = _items.value ?: return
-            val query = _searchQuery.value?.lowercase() ?: ""
-            val filtered = if (query.isBlank()) {
-                items
-            } else {
-                items.filter {
-                    it.name.lowercase().contains(query) ||
-                    it.category.displayName.lowercase().contains(query)
-                }
+    private val _listTitle = MutableLiveData<String>("Lista de Compras")
+    val listTitle: LiveData<String> get() = _listTitle
+
+    private val _items = MediatorLiveData<List<ListItem>>()
+    val items: LiveData<List<ListItem>> get() = _items
+
+    init {
+        _items.addSource(repository.items) { items ->
+            _items.value = groupAndSort(items)
+        }
+    }
+
+    private fun groupAndSort(items: List<Item>): List<ListItem> {
+        val sorted = items.sortedWith(
+            compareBy<Item> { it.bought }
+                .thenBy { Category.fromString(it.category).displayName }
+                .thenBy { it.name.lowercase() }
+        )
+
+        val groupedList = mutableListOf<ListItem>()
+        var currentCategory = ""
+
+        sorted.forEach { item ->
+            val categoryDisplayName = Category.fromString(item.category).displayName
+            if (categoryDisplayName != currentCategory) {
+                groupedList.add(ListItem.HeaderItem(categoryDisplayName))
+                currentCategory = categoryDisplayName
             }
-            value = filtered
+            groupedList.add(ListItem.ShoppingItem(item))
         }
 
-        addSource(_items) { update() }
-        addSource(_searchQuery) { update() }
+        return groupedList
     }
 
-    fun loadList(listId: Int) {
-        val shoppingList = FakeDatabase.shoppingLists.firstOrNull { it.id == listId }
-        _list.value = shoppingList
-        _items.value = shoppingList?.items ?: emptyList()
+
+    fun setListId(listId: String) {
+        _listId.value = listId
+        repository.startObservingItems(listId)
+        val list = repository.lists.value?.firstOrNull { it.id == listId }
+        _listTitle.value = list?.title ?: "Lista de Compras"
     }
 
-    fun setSearchQuery(query: String) {
-        _searchQuery.value = query
+
+
+    fun setItemQuery(query: String) {
+        repository.setItemQuery(query)
     }
+
 
     fun addItem(item: Item) {
-        _list.value?.items?.add(item)
-        refreshItems()
-    }
-
-    fun updateItem(item: Item) {
-        val currentList = _list.value
-
-        if (currentList != null) {
-            val index = currentList.items.indexOfFirst { it.id == item.id }
-
-            if (index >= 0) {
-
-                currentList.items[index] = item
-
-
-                _list.value = currentList
-                _filteredItems.value = currentList.items.toList()
-            }
+        viewModelScope.launch {
+            repository.addItem(listId, item)
         }
     }
-    fun deleteItem(item: Item) {
-        _list.value?.items?.remove(item)
-        refreshItems()
+
+
+
+    fun updateItem(item: Item) {
+        viewModelScope.launch {
+            repository.updateItem(listId, item)
+        }
     }
+
+
+
 
     fun toggleBought(item: Item) {
-        item.isBought = !item.isBought
-        refreshItems()
+        viewModelScope.launch {
+            repository.toggleBought(listId, item)
+        }
     }
 
-    private fun refreshItems() {
-        _items.value = _list.value?.items?.toList() ?: emptyList()
+
+    fun deleteItem(item: Item) {
+        viewModelScope.launch {
+            repository.deleteItem(listId, item.id)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        repository.stopObservingItems()
     }
 }

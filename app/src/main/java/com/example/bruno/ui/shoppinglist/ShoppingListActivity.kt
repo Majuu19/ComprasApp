@@ -1,4 +1,5 @@
 package com.example.bruno.ui.shoppinglist
+
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.EditText
@@ -6,10 +7,9 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.bruno.data.FakeDatabase
 import com.example.bruno.databinding.ActivityShoppingListBinding
 import com.example.bruno.model.Category
 import com.example.bruno.model.Item
@@ -22,7 +22,11 @@ class ShoppingListActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityShoppingListBinding
-    private lateinit var viewModel: ShoppingListViewModel
+
+    private val vm: ShoppingListViewModel by viewModels {
+        ShoppingListVMFactory(this)
+    }
+
     private lateinit var adapter: ItemListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,54 +34,52 @@ class ShoppingListActivity : AppCompatActivity() {
         binding = ActivityShoppingListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
+        setupRecycler()
+        setupListeners()
+        setupObservers()
 
-        val listId = intent.getIntExtra(EXTRA_LIST_ID, -1)
-        viewModel.loadList(listId)
+        val listId = intent.getStringExtra(EXTRA_LIST_ID) ?: ""
+        vm.setListId(listId)
+    }
 
-        setupRecyclerView()
-        observeViewModel()
+    private fun setupRecycler() {
+        adapter = ItemListAdapter(
+            onCheck = { item -> vm.toggleBought(item) },
+            onEdit = { item -> showItemDialog(item) },
+            onDelete = { item -> vm.deleteItem(item) }
+        )
 
-        viewModel.list.observe(this) {
-            title = it?.title ?: "Lista de Compras"
-        }
+        binding.recyclerItems.layoutManager = LinearLayoutManager(this)
+        binding.recyclerItems.adapter = adapter
+    }
 
+    private fun setupListeners() {
 
         binding.fabAddItem.setOnClickListener {
             showItemDialog(null)
         }
 
-
         binding.inputSearchItems.addTextChangedListener { text ->
-            viewModel.setSearchQuery(text.toString())
+            vm.setItemQuery(text.toString())
         }
 
+        binding.btnVoltar.setOnClickListener { finish() }
+    }
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.btnVoltar.setOnClickListener {
-            finish() // Fecha a tela atual e volta para a MainActivity
+    private fun setupObservers() {
+        vm.listTitle.observe(this) {
+            title = it
         }
-    }
 
-    private fun setupRecyclerView() {
-        adapter = ItemListAdapter(
-            onCheck = { item -> viewModel.toggleBought(item) },
-            onEdit = { item -> showItemDialog(item) },
-            onDelete = { item -> viewModel.deleteItem(item) }
-        )
-        binding.recyclerItems.layoutManager = LinearLayoutManager(this)
-        binding.recyclerItems.adapter = adapter
-    }
-
-    private fun observeViewModel() {
-        viewModel.filteredItems.observe(this) {
-            adapter.updateData(it)
+        vm.items.observe(this) { items ->
+            adapter.submitList(items)
         }
     }
 
     private fun showItemDialog(item: Item?) {
-        val isEditing = item != null
-        val title = if (isEditing) "Editar Item" else "Adicionar Item"
+
+        val editing = item != null
+        val dialogTitle = if (editing) "Editar Item" else "Adicionar Item"
 
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -90,7 +92,6 @@ class ShoppingListActivity : AppCompatActivity() {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
         }
 
-
         val unidades = listOf("unidade", "kg", "g", "L", "mL", "caixa", "pacote")
         val spinnerUnit = Spinner(this).apply {
             adapter = ArrayAdapter(
@@ -100,7 +101,6 @@ class ShoppingListActivity : AppCompatActivity() {
             )
         }
 
-
         val spinnerCategory = Spinner(this).apply {
             adapter = ArrayAdapter(
                 this@ShoppingListActivity,
@@ -109,13 +109,13 @@ class ShoppingListActivity : AppCompatActivity() {
             )
         }
 
+        if (editing) {
+            inputName.setText(item!!.name)
+            inputQuantity.setText(item.quantity.toString())
+            spinnerUnit.setSelection(unidades.indexOf(item.unit))
 
-        if (isEditing) {
-            inputName.setText(item?.name)
-            inputQuantity.setText(item?.quantity.toString())
-            val unitIndex = unidades.indexOf(item?.unit)
-            if (unitIndex >= 0) spinnerUnit.setSelection(unitIndex)
-            spinnerCategory.setSelection(item?.category?.ordinal ?: 0)
+            val enumCat = Category.fromString(item.category)
+            spinnerCategory.setSelection(enumCat.ordinal)
         }
 
         layout.addView(inputName)
@@ -124,35 +124,39 @@ class ShoppingListActivity : AppCompatActivity() {
         layout.addView(spinnerCategory)
 
         AlertDialog.Builder(this)
-            .setTitle(title)
+            .setTitle(dialogTitle)
             .setView(layout)
-            .setPositiveButton("Salvar") { d, _ ->
+            .setPositiveButton("Salvar") { dialog, _ ->
+
                 val name = inputName.text.toString().trim()
                 val quantity = inputQuantity.text.toString().toIntOrNull() ?: 1
                 val unit = spinnerUnit.selectedItem.toString()
-                val category = Category.values()[spinnerCategory.selectedItemPosition]
+                val categoryEnum = Category.values()[spinnerCategory.selectedItemPosition]
+                val categoryString = categoryEnum.name
 
                 if (name.isNotEmpty()) {
-                    if (isEditing) {
-                        item?.apply {
-                            this.name = name
-                            this.quantity = quantity
-                            this.unit = unit
-                            this.category = category
-                        }
-                        item?.let { viewModel.updateItem(it) }
-                    } else {
-                        val newItem = Item(
-                            id = FakeDatabase.nextItemId(),
+
+                    if (editing) {
+                        val updated = item!!.copy(
                             name = name,
                             quantity = quantity,
                             unit = unit,
-                            category = category
+                            category = categoryString
                         )
-                        viewModel.addItem(newItem)
+                        vm.updateItem(updated)
+
+                    } else {
+                        val newItem = Item(
+                            name = name,
+                            quantity = quantity,
+                            unit = unit,
+                            category = categoryString,
+                        )
+                        vm.addItem(newItem)
                     }
                 }
-                d.dismiss()
+
+                dialog.dismiss()
             }
             .setNegativeButton("Cancelar", null)
             .create()

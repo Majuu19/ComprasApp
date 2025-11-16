@@ -4,24 +4,57 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.bruno.data.repository.ShoppingRepository
 import com.example.bruno.model.ShoppingList
+import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel(private val repository: ShoppingRepository) : ViewModel() {
 
+    val lists: LiveData<List<ShoppingList>> get() = repository.lists
+
+    val editingList = MutableLiveData<ShoppingList?>()
     private val _pendingImageUri = MutableLiveData<Uri?>()
-    val pendingImageUri: LiveData<Uri?> = _pendingImageUri
+    val pendingTitle = MutableLiveData<String?>()
 
-    private val _editingList = MutableLiveData<ShoppingList?>()
-    val editingList: LiveData<ShoppingList?> = _editingList
+    fun start() = repository.startObservingLists()
+
+    fun stop() = repository.clearListsListener()
+
+    fun setQuery(query: String) {
+        repository.setListQuery(query)
+    }
+
+    fun setEditingList(list: ShoppingList?) {
+        editingList.value = list
+    }
 
     fun setPendingImageUri(uri: Uri?) {
         _pendingImageUri.value = uri
     }
 
-    fun setEditingList(list: ShoppingList?) {
-        _editingList.value = list
-        if (list == null) {
+    fun setPendingTitle(title: String?) {
+        pendingTitle.value = title
+    }
+
+    fun saveList(title: String) {
+        viewModelScope.launch {
+            val imageUri = _pendingImageUri.value
+            val currentList = editingList.value
+            if (currentList != null) {
+                repository.updateList(currentList, title, imageUri)
+            } else {
+                repository.addList(title, imageUri)
+            }
             _pendingImageUri.value = null
+            editingList.value = null
+            pendingTitle.value = null
+        }
+    }
+
+    fun deleteList(list: ShoppingList) {
+        viewModelScope.launch {
+            repository.deleteList(list)
         }
     }
 }

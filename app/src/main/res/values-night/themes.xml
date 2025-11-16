@@ -1,24 +1,24 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme for night mode. -->
+
     <style name="Theme.Bruno" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Cores Primárias -->
+
         <item name="colorPrimary">@color/primary_dark</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
 
-        <!-- Cores Secundárias -->
+
         <item name="colorSecondary">@color/secondary_light</item>
         <item name="colorSecondaryVariant">@color/secondary_light</item>
         <item name="colorOnSecondary">@color/black</item>
 
-        <!-- Cor de fundo do app -->
+
         <item name="android:colorBackground">#121212</item>
         <item name="colorSurface">#242424</item>
 
-        <!-- Cor da barra de status -->
+
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
 
-        <!-- Estilo dos componentes -->
+
         <item name="textInputStyle">@style/Widget.Bruno.TextInputLayout</item>
         <item name="buttonStyle">@style/Widget.Bruno.Button</item>
     </style>

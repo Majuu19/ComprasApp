@@ -1,10 +1,13 @@
 package com.example.bruno.model
 
-data class Item( //temos aqui as discricoes de cada item
-    val id: Int,
-    var name: String,
-    var quantity: Int,
-    var unit: String,
-    var category: Category,
-    var isBought: Boolean = false
+import com.google.firebase.firestore.Exclude
+
+data class Item(
+    @get:Exclude var id: String = "",
+    val name: String = "",
+    val nameLowercase: String = "",
+    val quantity: Int = 1,
+    val unit: String = "unidade",
+    val bought: Boolean = false,
+    val category: String = Category.OUTROS.name
 )

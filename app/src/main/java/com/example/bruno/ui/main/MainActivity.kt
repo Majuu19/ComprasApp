@@ -1,154 +1,151 @@
 package com.example.bruno.ui.main
+
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.bruno.data.FakeDatabase
+import coil.load
+import com.example.bruno.R
 import com.example.bruno.databinding.ActivityMainBinding
 import com.example.bruno.model.ShoppingList
 import com.example.bruno.ui.login.LoginActivity
 import com.example.bruno.ui.main.adapter.ShoppingListAdapter
 import com.example.bruno.ui.shoppinglist.ShoppingListActivity
+import com.google.firebase.auth.FirebaseAuth
 
+class MainActivity : AppCompatActivity() {
 
-class MainActivity : AppCompatActivity() {// Tela principal do app
     private lateinit var binding: ActivityMainBinding
+    private val vm: MainViewModel by viewModels { MainVMFactory(this) }
     private lateinit var adapter: ShoppingListAdapter
-    private lateinit var mainViewModel: MainViewModel
 
-    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    private val auth = FirebaseAuth.getInstance()
+
+    private val pickImage = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
         if (uri != null) {
-            mainViewModel.setPendingImageUri(uri)
-            showListDialog(mainViewModel.editingList.value)
+            vm.setPendingImageUri(uri)
+            showListDialog(vm.editingList.value, uri)
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        setupRecycler()
+        setupListeners()
+        setupObservers()
+    }
 
+    override fun onStart() {
+        super.onStart()
+        if (auth.currentUser == null) {
+            goToLogin()
+            return
+        }
+        vm.start()
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun setupRecycler() {
         adapter = ShoppingListAdapter(
             onClick = { list ->
-                // abre a tela de itens da lista
                 val it = Intent(this, ShoppingListActivity::class.java)
-                it.putExtra(ShoppingListActivity.EXTRA_LIST_ID, list.id) // passar o ID da lista
+                it.putExtra(ShoppingListActivity.EXTRA_LIST_ID, list.id)
                 startActivity(it)
             },
-            onEdit = { list ->
-                showListDialog(list)
-            },
-            onDelete = { list ->
-                // remover a lista e todos os seus itens
-                list.items.clear()
-                FakeDatabase.shoppingLists.removeAll { it.id == list.id }
-                refresh() // atualiza a tela
-            }
+            onEdit = { list -> showListDialog(list, null) },
+            onDelete = { list -> vm.deleteList(list) }
         )
-
 
         binding.recyclerShoppingLists.layoutManager = LinearLayoutManager(this)
         binding.recyclerShoppingLists.adapter = adapter
+    }
 
+    private fun setupListeners() {
         binding.fabAddList.setOnClickListener {
-            showListDialog(null)
+            showListDialog(null, null)
         }
 
-        // botao para sair do aplicativo
         binding.btnLogout.setOnClickListener {
-
-            // apaga todos os dados do banco em memória
-            FakeDatabase.clearAll()
-
-            // volta para a tela de Login e limpa a memoria activits
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
+            auth.signOut()
+            vm.stop()
+            goToLogin()
         }
 
-        // pesquisa e filtra as listas em tempo real
         binding.inputSearchLists.addTextChangedListener { text ->
-            val query = text.toString().lowercase()
-
-            // filtra listas pelo texto digitado
-            val filtered = FakeDatabase.shoppingLists.filter {
-                it.title.lowercase().contains(query)
-            }
-            adapter.submitList(filtered)
+            vm.setQuery(text?.toString().orEmpty())
         }
     }
 
-    // cadastrar ou editar uma lista
-    private fun showListDialog(list: ShoppingList?) {
-        mainViewModel.setEditingList(list)
-        val isEditing = list != null
+    private fun setupObservers() {
+        vm.lists.observe(this) { list ->
+            adapter.submitList(list)
+        }
+    }
+
+    private fun showListDialog(list: ShoppingList?, imageUri: Uri?) {
+        vm.setEditingList(list)
 
         val input = EditText(this).apply {
-            if (isEditing) {
-                setText(list?.title)
-            }
-            mainViewModel.pendingImageUri.value?.let {
-                // se houver uma imagem pendente, ela será usada
+            hint = "Título da lista"
+            list?.let { setText(it.title) }
+        }
+
+        val imageView = ImageView(this).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                200
+            ).also { it.setMargins(0, 16, 0, 0) }
+
+            val imageToLoad = imageUri ?: list?.imageUrl
+            if (imageToLoad != null) {
+                load(imageToLoad)
+            } else {
+                load(R.drawable.ic_outros)
             }
         }
 
-        val title = if (isEditing) "Editar lista" else "Nova lista"
+        val dialogLayout = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 32)
+            addView(input)
+            addView(imageView)
+        }
 
         AlertDialog.Builder(this)
-            .setTitle(title)
-            .setView(input)
-            .setPositiveButton("Salvar") { d, _ ->
-                val listTitle = input.text.toString().trim()
-                if (listTitle.isNotEmpty()) {
-                    if (isEditing) {
-                        list?.let { currentList ->
-                            currentList.title = listTitle
-                            mainViewModel.pendingImageUri.value?.let {
-                                currentList.imageUri = it.toString()
-                            }
-                        }
-                    } else {
-                        val newList = ShoppingList(
-                            id = FakeDatabase.nextListId(),
-                            title = listTitle,
-                            imageUri = mainViewModel.pendingImageUri.value?.toString()
-                        )
-                        FakeDatabase.shoppingLists.add(newList)
-                    }
-                    sortByTitle()
-                    refresh()
+            .setTitle(if (list != null) "Editar lista" else "Nova lista")
+            .setView(dialogLayout)
+            .setPositiveButton("Salvar") { dialog, _ ->
+                val title = input.text.toString().trim()
+                if (title.isNotEmpty()) {
+                    vm.saveList(title)
                 }
-                d.dismiss()
+                dialog.dismiss()
             }
-            .setNeutralButton("Imagem…") { d, _ ->
+            .setNeutralButton("Imagem…") { dialog, _ ->
                 pickImage.launch("image/*")
-                d.dismiss()
+                dialog.dismiss()
             }
             .setNegativeButton("Cancelar", null)
             .create()
             .show()
-    }
-    private fun sortByTitle() {
-        FakeDatabase.shoppingLists.sortBy { it.title.lowercase() }
-    }
-
-    // atualiza o RecyclerView com os dados atuais
-    private fun refresh() {
-        adapter.submitList(FakeDatabase.shoppingLists.toList())
-    }
-
-    // sempre que a tela volta a aparecer ele ordena e atualiza
-    override fun onResume() {
-        super.onResume()
-        sortByTitle()
-        refresh()
     }
 }

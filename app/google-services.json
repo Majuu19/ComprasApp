@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "90241411680",
+    "project_id": "comprasapp-634e6",
+    "storage_bucket": "comprasapp-634e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:90241411680:android:bd023ba48ebd96ff93f105",
+        "android_client_info": {
+          "package_name": "com.example.bruno"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhJCZK0tnCbp4a38n50oIyUk2ZWc9Oycg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

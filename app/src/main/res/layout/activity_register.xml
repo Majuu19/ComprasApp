@@ -12,7 +12,7 @@
         android:gravity="center_vertical"
         android:padding="24dp">
 
-        <!-- Botão de voltar foi removido para usar o da ActionBar -->
+
 
         <TextView
             android:layout_width="wrap_content"
@@ -21,7 +21,7 @@
             android:text="Crie sua conta"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
-        <!-- campo nome do usuario -->
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                 android:hint="Nome" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- campo email -->
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -50,7 +50,7 @@
                 android:inputType="textEmailAddress" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- campo senha -->
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- campo confirmar senha -->
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -82,7 +82,7 @@
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- botao de criar conta -->
+
         <Button
             android:id="@+id/btnCreateAccount"
             android:text="Criar conta"
@@ -90,7 +90,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"/>
 
-        <!-- texto clicavel pra voltar pro login -->
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/txtBackToLogin"
             style="?attr/materialButtonOutlinedStyle"

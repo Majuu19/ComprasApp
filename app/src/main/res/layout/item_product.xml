@@ -7,20 +7,20 @@
     app:cardElevation="2dp"
     app:cardCornerRadius="8dp">
 
-    <!-- layout interno do card -->
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- checkbox pra marcar se o item ja foi comprado -->
+
         <CheckBox
             android:id="@+id/checkBought"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="comprado" />
 
-        <!-- nome do item -->
+
         <TextView
             android:id="@+id/txtName"
             android:layout_width="wrap_content"
@@ -31,7 +31,7 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <!-- quantidade e unidade ex: 2 kg -->
+
         <TextView
             android:id="@+id/txtQuantity"
             android:layout_width="wrap_content"
@@ -41,7 +41,7 @@
             android:layout_marginStart="12dp"
             android:text="2 kg" />
 
-        <!-- categoria do produto ex: bebidas, higiene -->
+
         <TextView
             android:id="@+id/txtCategory"
             android:layout_width="wrap_content"
@@ -50,7 +50,7 @@
             android:text="categoria"
             android:textStyle="italic" />
 
-        <!-- botao de excluir o item -->
+
         <ImageButton
             android:id="@+id/btnDeleteItem"
             android:layout_width="40dp"

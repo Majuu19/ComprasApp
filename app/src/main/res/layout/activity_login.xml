@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- logo do app em cima no centro -->
+
     <ImageView
         android:id="@+id/imgLogo"
         android:layout_width="96dp"
@@ -23,7 +23,7 @@
         android:text="Bem-vindo de volta!"
         android:textAppearance="?attr/textAppearanceHeadline6"/>
 
-    <!-- campo de email -->
+
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- campo de senha -->
+
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
             android:layout_height="wrap_content" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- botao de login -->
+
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
@@ -62,7 +62,7 @@
         android:text="Entrar"
         android:layout_marginTop="24dp" />
 
-    <!-- botao pra ir pra tela de cadastro -->
+
     <Button
         android:id="@+id/btnRegister"
         style="?attr/materialButtonOutlinedStyle"
@@ -70,4 +70,15 @@
         android:layout_height="wrap_content"
         android:text="Cadastrar"
         android:layout_marginTop="8dp" />
+
+
+    <TextView
+        android:id="@+id/btnForgotPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Esqueci minha senha"
+        android:textColor="@android:color/holo_blue_dark"
+        android:layout_marginTop="12dp"
+        android:layout_gravity="center" />
+
 </LinearLayout>
