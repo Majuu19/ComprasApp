@@ -13,6 +13,9 @@ class MainViewModel(private val repository: ShoppingRepository) : ViewModel() {
 
     val lists: LiveData<List<ShoppingList>> get() = repository.lists
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
     val editingList = MutableLiveData<ShoppingList?>()
     private val _pendingImageUri = MutableLiveData<Uri?>()
     val pendingTitle = MutableLiveData<String?>()
@@ -39,16 +42,21 @@ class MainViewModel(private val repository: ShoppingRepository) : ViewModel() {
 
     fun saveList(title: String) {
         viewModelScope.launch {
-            val imageUri = _pendingImageUri.value
-            val currentList = editingList.value
-            if (currentList != null) {
-                repository.updateList(currentList, title, imageUri)
-            } else {
-                repository.addList(title, imageUri)
+            _isLoading.value = true
+            try {
+                val imageUri = _pendingImageUri.value
+                val currentList = editingList.value
+                if (currentList != null) {
+                    repository.updateList(currentList, title, imageUri)
+                } else {
+                    repository.addList(title, imageUri)
+                }
+                _pendingImageUri.value = null
+                editingList.value = null
+                pendingTitle.value = null
+            } finally {
+                _isLoading.value = false
             }
-            _pendingImageUri.value = null
-            editingList.value = null
-            pendingTitle.value = null
         }
     }
 

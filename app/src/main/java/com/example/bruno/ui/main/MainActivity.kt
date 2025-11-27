@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private val vm: MainViewModel by viewModels { MainVMFactory(this) }
     private lateinit var adapter: ShoppingListAdapter
 
+    private var loadingDialog: AlertDialog? = null
     private val auth = FirebaseAuth.getInstance()
 
     private val pickImage = registerForActivityResult(
@@ -57,6 +58,12 @@ class MainActivity : AppCompatActivity() {
         vm.start()
     }
 
+    override fun onStop() {
+        super.onStop()
+        vm.stop()
+        loadingDialog?.dismiss()
+    }
+
     private fun goToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -84,12 +91,6 @@ class MainActivity : AppCompatActivity() {
             showListDialog(null, null)
         }
 
-        binding.btnLogout.setOnClickListener {
-            auth.signOut()
-            vm.stop()
-            goToLogin()
-        }
-
         binding.inputSearchLists.addTextChangedListener { text ->
             vm.setQuery(text?.toString().orEmpty())
         }
@@ -98,6 +99,21 @@ class MainActivity : AppCompatActivity() {
     private fun setupObservers() {
         vm.lists.observe(this) { list ->
             adapter.submitList(list)
+        }
+
+        vm.isLoading.observe(this) { isLoading ->
+            if (isLoading) {
+                if (loadingDialog == null) {
+                    loadingDialog = AlertDialog.Builder(this)
+                        .setTitle("Aguarde")
+                        .setMessage("Salvando lista...")
+                        .setCancelable(false)
+                        .create()
+                }
+                loadingDialog?.show()
+            } else {
+                loadingDialog?.dismiss()
+            }
         }
     }
 
